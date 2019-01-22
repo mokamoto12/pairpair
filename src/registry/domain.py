@@ -2,6 +2,8 @@ from src.domain.model.pair.pair import (EvaluationService,
                                         PairsHistoryRepository)
 from src.infrastructure.persistence.pair.inmemory import \
     InMemoryPairsHistoryRepository
+from src.infrastructure.persistence.pair.sqlite3 import \
+    Sqlite3PairsHistoryRepository
 
 
 def evaluation_service() -> EvaluationService:
@@ -9,4 +11,5 @@ def evaluation_service() -> EvaluationService:
 
 
 def pairs_history_repository() -> PairsHistoryRepository:
-    return InMemoryPairsHistoryRepository()
+    return Sqlite3PairsHistoryRepository()
+    # return InMemoryPairsHistoryRepository()

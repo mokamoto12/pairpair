@@ -33,6 +33,18 @@ class Pair:
                 self.second == other.first and self.first != other.second) or (
                     self.second == other.second and self.first != other.first)
 
+    def to_dict(self) -> dict:
+        return {
+            'first': self.first.name,
+            'second': self.second.name if self.second is not None else None
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Pair':
+        return Pair(
+            Member(data['first']),
+            Member(data['second']) if data['second'] is not None else None)
+
 
 @dataclass
 class Pairs:
@@ -66,8 +78,15 @@ class Pairs:
             map(lambda self_pair, other_pair: self_pair == other_pair, self,
                 other))
 
+    def to_list(self) -> List[dict]:
+        return [pair.to_dict() for pair in self.list]
+
     @staticmethod
-    def from_list(data: List[List[str]]) -> 'Pairs':
+    def from_list(data: List[dict]) -> 'Pairs':
+        return Pairs([Pair.from_dict(l) for l in data])
+
+    @staticmethod
+    def from_list2(data: List[List[str]]) -> 'Pairs':
         return Pairs([
             Pair(Member(l[0]),
                  Member(l[1]) if len(l) == 2 else None) for l in data
