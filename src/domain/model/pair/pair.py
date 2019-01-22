@@ -137,6 +137,9 @@ class PairsHistoryRepository(ABC):
 
 class EvaluationService:
     def evaluate(self, history: List[Pairs], members: Members) -> List[Pairs]:
+        if not history:
+            return PairTree.possible_pairs(members.combinations())
+
         filtered_pair_trees = self.pair_must_have_only_either_member_of_last_pair(
             history[-1], members.combinations())
 

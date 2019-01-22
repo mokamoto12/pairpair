@@ -13,7 +13,7 @@ class NextPairsByHistory:
         self.pairs_repository = pairs_repository
         self.evaluation_service = evaluation_service
 
-    def run(self, members: Members) -> Pairs:
+    def run(self, members: Members) -> List[Pairs]:
         history: List[Pairs] = self.pairs_repository.load()
         return self.evaluation_service.evaluate(history, members)
 
