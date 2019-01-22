@@ -27,6 +27,21 @@ class NextPairsByHistoryTest(TestCase):
                    Pair(Member('a'), None)])
         ])
 
+    def test_run_with_history(self):
+        self.repository.save(
+            Pairs([Pair(Member('a'), Member('b')),
+                   Pair(Member('c'), None)]))
+
+        pairs_list = self.use_case.run(
+            Members([Member('a'), Member('b'),
+                     Member('c')]))
+        self.assertEqual(pairs_list, [
+            Pairs([Pair(Member('a'), Member('c')),
+                   Pair(Member('b'), None)]),
+            Pairs([Pair(Member('b'), Member('c')),
+                   Pair(Member('a'), None)])
+        ])
+
 
 class SavePairsHistoryTest(TestCase):
     def setUp(self):
