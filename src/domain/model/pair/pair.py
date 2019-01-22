@@ -38,6 +38,9 @@ class Pair:
 class Pairs:
     list: List[Pair]
 
+    def __iter__(self) -> Iterator[Pair]:
+        yield from self.list
+
     def __getitem__(self, item: int) -> Pair:
         return self.list[item]
 
@@ -58,6 +61,11 @@ class Pairs:
     def merge(self, other: 'Pairs') -> 'Pairs':
         return Pairs(self.list + other.list)
 
+    def have_same(self, other: 'Pairs') -> bool:
+        return any(
+            map(lambda self_pair, other_pair: self_pair == other_pair, self,
+                other))
+
 
 @dataclass
 class PairTree:
@@ -72,6 +80,10 @@ class PairTree:
             pairs.prepend(self.pair) for pair_tree in self.remainder
             for pairs in pair_tree.fold()
         ]
+
+    @staticmethod
+    def possible_pairs(trees: List['PairTree']) -> List[Pairs]:
+        return [pairs for pair_tree in trees for pairs in pair_tree.fold()]
 
 
 @dataclass
@@ -124,27 +136,29 @@ class PairsHistoryRepository(ABC):
 
 
 class EvaluationService:
-    def evaluate(self, history: List[Pairs], members: Members) -> Pairs:
+    def evaluate(self, history: List[Pairs], members: Members) -> List[Pairs]:
         filtered_pair_trees = self.pair_must_have_only_either_member_of_last_pair(
             history[-1], members.combinations())
 
         if not filtered_pair_trees:
             filtered_pair_trees = members.combinations()
 
-        filtered_pair_trees2 = filtered_pair_trees
+        possible_pairs: List[Pairs] = PairTree.possible_pairs(
+            filtered_pair_trees)
+
+        possible_pairs = self.member_is_must_not_in_same_position_at_three_times(
+            history, possible_pairs)
+
+        good_pairs = possible_pairs
         for i in range(1, len(history) + 1):
             tmp = self.pair_should_not_exist_same_pair_in_near_history(
-                history[-i:], filtered_pair_trees)
+                history[-i:], possible_pairs)
             if not tmp:
-                continue
+                break
             else:
-                filtered_pair_trees2 = tmp
+                good_pairs = tmp
 
-        possible_pairs: List[Pairs] = [
-            pairs for pair_tree in filtered_pair_trees2
-            for pairs in pair_tree.fold()
-        ]
-        return possible_pairs[0]
+        return good_pairs
 
     def pair_must_have_only_either_member_of_last_pair(
             self, last_pairs: Pairs,
@@ -163,20 +177,28 @@ class EvaluationService:
                     last_pairs.tail(), tree.remainder)))
         ]
 
+    def member_is_must_not_in_same_position_at_three_times(
+            self, history: List[Pairs],
+            possible_pairs: List[Pairs]) -> List[Pairs]:
+        if len(history) < 2:
+            return possible_pairs
+
+        def member_in_same_position_at_three_times(pairs: Pairs) -> bool:
+            return any(
+                map(
+                    lambda old_pair1, old_pair2, current_pair: (current_pair.first in old_pair1 and current_pair.first in old_pair2) or (current_pair.second in old_pair1 and current_pair.second in old_pair2),
+                    history[-1], history[-2], pairs))
+
+        return [
+            pairs for pairs in possible_pairs
+            if not member_in_same_position_at_three_times(pairs)
+        ]
+
     def pair_should_not_exist_same_pair_in_near_history(
             self, history: List[Pairs],
-            pair_trees: List[PairTree]) -> List[PairTree]:
-        if not history:
-            return pair_trees
+            possible_pairs: List[Pairs]) -> List[Pairs]:
 
-        old_pairs: Pairs = reduce(lambda acc, pairs: acc.merge(pairs), history)
-
-        def aux(trees: List[PairTree], remainder_depth: int) -> List[PairTree]:
-            return [
-                PairTree(tree.pair, aux(tree.remainder, remainder_depth - 1))
-                for tree in trees if tree.pair not in old_pairs and
-                (remainder_depth - 1 == 0 or (remainder_depth - 1 > 0 and aux(
-                    tree.remainder, remainder_depth - 1)))
-            ]
-
-        return aux(pair_trees, len(history[0]))
+        return [
+            pairs for pairs in possible_pairs
+            if all(not pairs.have_same(old_pairs) for old_pairs in history)
+        ]

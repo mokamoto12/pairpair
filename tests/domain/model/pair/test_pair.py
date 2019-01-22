@@ -44,6 +44,18 @@ class PairsTest(TestCase):
     def test_in__pairs(self):
         self.assertTrue(Pair(Member('c'), None) in self.pairs)
 
+    def test_have_same__pairs(self):
+        self.assertTrue(
+            self.pairs.have_same(
+                Pairs(
+                    [Pair(Member('x'), Member('y')),
+                     Pair(Member('c'), None)])))
+
+    def test_have_same__pairs2(self):
+        self.assertTrue(not self.pairs.have_same(
+            Pairs([Pair(Member('x'), Member('y')),
+                   Pair(Member('z'), None)])))
+
 
 class PairTreeTest(TestCase):
     def test_fold(self):
@@ -210,21 +222,36 @@ class EvaluationServiceTest(TestCase):
             Pairs([Pair(Member('a'), Member('b'))]), tree)
         self.assertEqual(filtered, [])
 
+    def test_position_filter(self):
+        history = [
+            Pairs([Pair(Member('a'), Member('b')),
+                   Pair(Member('c'), None)]),
+            Pairs([Pair(Member('a'), Member('c')),
+                   Pair(Member('b'), None)])
+        ]
+        tree = self.members3.combinations()
+        possible_pairs = PairTree.possible_pairs(tree)
+        filtered_tree = EvaluationService(
+        ).member_is_must_not_in_same_position_at_three_times(
+            history, possible_pairs)
+        self.assertEqual(
+            filtered_tree,
+            [Pairs([Pair(Member('b'), Member('c')),
+                    Pair(Member('a'), None)])])
+
     def test_filter_same_pair(self):
         history = [
             Pairs([Pair(Member('a'), Member('b')),
                    Pair(Member('c'), None)])
         ]
-        tree = self.members3.combinations()
-        filtered_tree = EvaluationService(
-        ).pair_should_not_exist_same_pair_in_near_history(history, tree)
-        self.assertEqual(filtered_tree, [
-            PairTree(
-                Pair(Member('a'), Member('c')),
-                [PairTree(Pair(Member('b'), None), [])]),
-            PairTree(
-                Pair(Member('b'), Member('c')),
-                [PairTree(Pair(Member('a'), None), [])])
+        pairs = PairTree.possible_pairs(self.members3.combinations())
+        filtered_pairs = EvaluationService(
+        ).pair_should_not_exist_same_pair_in_near_history(history, pairs)
+        self.assertEqual(filtered_pairs, [
+            Pairs([Pair(Member('a'), Member('c')),
+                   Pair(Member('b'), None)]),
+            Pairs([Pair(Member('b'), Member('c')),
+                   Pair(Member('a'), None)])
         ])
 
     def test_filter_same_pair2(self):
@@ -234,14 +261,13 @@ class EvaluationServiceTest(TestCase):
             Pairs([Pair(Member('a'), Member('c')),
                    Pair(Member('b'), None)])
         ]
-        tree = self.members3.combinations()
-        filtered_tree = EvaluationService(
-        ).pair_should_not_exist_same_pair_in_near_history(history, tree)
-        self.assertEqual(filtered_tree, [
-            PairTree(
-                Pair(Member('b'), Member('c')),
-                [PairTree(Pair(Member('a'), None), [])])
-        ])
+        pairs = PairTree.possible_pairs(self.members3.combinations())
+        filtered_pairs = EvaluationService(
+        ).pair_should_not_exist_same_pair_in_near_history(history, pairs)
+        self.assertEqual(
+            filtered_pairs,
+            [Pairs([Pair(Member('b'), Member('c')),
+                    Pair(Member('a'), None)])])
 
     def test_filter_same_pair3(self):
         history = [
@@ -258,32 +284,37 @@ class EvaluationServiceTest(TestCase):
         ]
         tree = self.members5.combinations()
         s = EvaluationService()
-        filtered_tree = s.pair_should_not_exist_same_pair_in_near_history(
+        filtered_pairs = s.pair_should_not_exist_same_pair_in_near_history(
             history,
-            s.pair_must_have_only_either_member_of_last_pair(
-                history[-1], tree))
-        self.assertEqual(filtered_tree, [
-            PairTree(
-                Pair(Member('a'), Member('e')), [
-                    PairTree(
-                        Pair(Member('b'), Member('c')),
-                        [PairTree(Pair(Member('d'), None), [])]),
-                    PairTree(
-                        Pair(Member('b'), Member('d')),
-                        [PairTree(Pair(Member('c'), None), [])])
-                ]),
-            PairTree(
-                Pair(Member('b'), Member('d')), [
-                    PairTree(
-                        Pair(Member('c'), Member('e')),
-                        [PairTree(Pair(Member('a'), None), [])])
-                ]),
-            PairTree(
-                Pair(Member('b'), Member('e')), [
-                    PairTree(
-                        Pair(Member('a'), Member('d')),
-                        [PairTree(Pair(Member('c'), None), [])])
-                ])
+            PairTree.possible_pairs(
+                s.pair_must_have_only_either_member_of_last_pair(
+                    history[-1], tree)))
+        self.assertEqual(filtered_pairs, [
+            Pairs([
+                Pair(Member('a'), Member('e')),
+                Pair(Member('b'), Member('c')),
+                Pair(Member('d'), None)
+            ]),
+            Pairs([
+                Pair(Member('a'), Member('e')),
+                Pair(Member('b'), Member('d')),
+                Pair(Member('c'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('d')),
+                Pair(Member('c'), Member('e')),
+                Pair(Member('a'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('e')),
+                Pair(Member('a'), Member('c')),
+                Pair(Member('d'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('e')),
+                Pair(Member('a'), Member('d')),
+                Pair(Member('c'), None)
+            ])
         ])
 
     def test_evaluate(self):
@@ -299,13 +330,48 @@ class EvaluationServiceTest(TestCase):
              Member('d'),
              Member('e')])
         pairs = EvaluationService().evaluate([last_pairs], members)
-        self.assertEqual(
-            pairs,
+        self.assertEqual(pairs, [
             Pairs([
                 Pair(Member('a'), Member('c')),
                 Pair(Member('d'), Member('e')),
                 Pair(Member('b'), None)
-            ]))
+            ]),
+            Pairs([
+                Pair(Member('a'), Member('d')),
+                Pair(Member('c'), Member('e')),
+                Pair(Member('b'), None)
+            ]),
+            Pairs([
+                Pair(Member('a'), Member('e')),
+                Pair(Member('b'), Member('c')),
+                Pair(Member('d'), None)
+            ]),
+            Pairs([
+                Pair(Member('a'), Member('e')),
+                Pair(Member('b'), Member('d')),
+                Pair(Member('c'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('c')),
+                Pair(Member('d'), Member('e')),
+                Pair(Member('a'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('d')),
+                Pair(Member('c'), Member('e')),
+                Pair(Member('a'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('e')),
+                Pair(Member('a'), Member('c')),
+                Pair(Member('d'), None)
+            ]),
+            Pairs([
+                Pair(Member('b'), Member('e')),
+                Pair(Member('a'), Member('d')),
+                Pair(Member('c'), None)
+            ]),
+        ])
 
     def test_evaluate_twice(self):
         history = [
@@ -327,13 +393,18 @@ class EvaluationServiceTest(TestCase):
              Member('d'),
              Member('e')])
         pairs = EvaluationService().evaluate(history, members)
-        self.assertEqual(
-            pairs,
+        self.assertEqual(pairs, [
             Pairs([
-                Pair(Member('a'), Member('d')),
+                Pair(Member('b'), Member('c')),
+                Pair(Member('a'), Member('e')),
+                Pair(Member('d'), None)
+            ]),
+            Pairs([
+                Pair(Member('c'), Member('d')),
                 Pair(Member('b'), Member('e')),
-                Pair(Member('c'), None)
-            ]))
+                Pair(Member('a'), None)
+            ])
+        ])
 
     def test_evaluate_three_times(self):
         history = [
@@ -348,9 +419,9 @@ class EvaluationServiceTest(TestCase):
                 Pair(Member('b'), None)
             ]),
             Pairs([
-                Pair(Member('a'), Member('d')),
+                Pair(Member('c'), Member('d')),
                 Pair(Member('b'), Member('e')),
-                Pair(Member('c'), None)
+                Pair(Member('a'), None)
             ])
         ]
         members = Members(
@@ -360,13 +431,13 @@ class EvaluationServiceTest(TestCase):
              Member('d'),
              Member('e')])
         pairs = EvaluationService().evaluate(history, members)
-        self.assertEqual(
-            pairs,
+        self.assertEqual(pairs, [
             Pairs([
-                Pair(Member('a'), Member('e')),
-                Pair(Member('b'), Member('c')),
-                Pair(Member('d'), None)
-            ]))
+                Pair(Member('d'), Member('e')),
+                Pair(Member('a'), Member('b')),
+                Pair(Member('c'), None)
+            ])
+        ])
 
     def test_evaluate_four_times(self):
         history = [
@@ -381,14 +452,14 @@ class EvaluationServiceTest(TestCase):
                 Pair(Member('b'), None)
             ]),
             Pairs([
-                Pair(Member('a'), Member('d')),
+                Pair(Member('c'), Member('d')),
                 Pair(Member('b'), Member('e')),
-                Pair(Member('c'), None)
+                Pair(Member('a'), None)
             ]),
             Pairs([
-                Pair(Member('a'), Member('e')),
-                Pair(Member('b'), Member('c')),
-                Pair(Member('d'), None)
+                Pair(Member('d'), Member('e')),
+                Pair(Member('a'), Member('b')),
+                Pair(Member('c'), None)
             ])
         ]
         members = Members(
@@ -398,13 +469,13 @@ class EvaluationServiceTest(TestCase):
              Member('d'),
              Member('e')])
         pairs = EvaluationService().evaluate(history, members)
-        self.assertEqual(
-            pairs,
+        self.assertEqual(pairs, [
             Pairs([
-                Pair(Member('c'), Member('e')),
-                Pair(Member('b'), Member('d')),
-                Pair(Member('a'), None)
-            ]))
+                Pair(Member('b'), Member('e')),
+                Pair(Member('a'), Member('c')),
+                Pair(Member('d'), None)
+            ])
+        ])
 
     def test_evaluate_five_times(self):
         history = [
@@ -419,19 +490,19 @@ class EvaluationServiceTest(TestCase):
                 Pair(Member('b'), None)
             ]),
             Pairs([
-                Pair(Member('a'), Member('d')),
+                Pair(Member('c'), Member('d')),
                 Pair(Member('b'), Member('e')),
+                Pair(Member('a'), None)
+            ]),
+            Pairs([
+                Pair(Member('d'), Member('e')),
+                Pair(Member('a'), Member('b')),
                 Pair(Member('c'), None)
             ]),
             Pairs([
-                Pair(Member('a'), Member('e')),
-                Pair(Member('b'), Member('c')),
+                Pair(Member('b'), Member('e')),
+                Pair(Member('a'), Member('c')),
                 Pair(Member('d'), None)
-            ]),
-            Pairs([
-                Pair(Member('c'), Member('e')),
-                Pair(Member('b'), Member('d')),
-                Pair(Member('a'), None)
             ])
         ]
         members = Members(
@@ -441,10 +512,10 @@ class EvaluationServiceTest(TestCase):
              Member('d'),
              Member('e')])
         pairs = EvaluationService().evaluate(history, members)
-        self.assertEqual(
-            pairs,
+        self.assertEqual(pairs, [
             Pairs([
-                Pair(Member('c'), Member('d')),
                 Pair(Member('a'), Member('b')),
+                Pair(Member('c'), Member('d')),
                 Pair(Member('e'), None)
-            ]))
+            ])
+        ])
