@@ -66,6 +66,13 @@ class Pairs:
             map(lambda self_pair, other_pair: self_pair == other_pair, self,
                 other))
 
+    @staticmethod
+    def from_list(data: List[List[str]]) -> 'Pairs':
+        return Pairs([
+            Pair(Member(l[0]),
+                 Member(l[1]) if len(l) == 2 else None) for l in data
+        ])
+
 
 @dataclass
 class PairTree:
@@ -123,6 +130,10 @@ class Members:
 
     def possible_pair(self) -> List[Pairs]:
         pass
+
+    @staticmethod
+    def from_list(data: List[str]) -> 'Members':
+        return Members([Member(l) for l in data])
 
 
 class PairsHistoryRepository(ABC):
