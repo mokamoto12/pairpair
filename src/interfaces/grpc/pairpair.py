@@ -1,6 +1,10 @@
+import time
+from concurrent import futures
 from typing import List
 
-from resources.protobuf import pair_pb2
+import grpc
+
+from resources.protobuf import pair_pb2, pair_pb2_grpc
 from resources.protobuf.pair_pb2_grpc import PairServiceServicer
 from src.domain.model.pair.pair import Members, Pairs
 from src.infrastructure.serialize.protobuf.pair import ProtoBufPairSerializer
@@ -20,3 +24,15 @@ class PairService(PairServiceServicer):
         members: Members = serializer.load_members(request)
         pairs_list: List[Pairs] = next_pairs_by_history().run(members)
         return serializer.dump_possible_pairs(pairs_list)
+
+
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    pair_pb2_grpc.add_PairServiceServicer_to_server(PairService(), server)
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    try:
+        while True:
+            time.sleep(60 * 60 * 24)
+    except KeyboardInterrupt:
+        server.stop(0)

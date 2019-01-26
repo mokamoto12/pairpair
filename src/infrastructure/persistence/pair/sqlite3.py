@@ -25,12 +25,15 @@ class Sqlite3PairsHistoryRepository(PairsHistoryRepository):
     def save(self, pairs_history: PairsHistory) -> None:
         self.cursor.execute(
             'INSERT INTO pairs(id, data, created_at) VALUES (?, ?, ?)',
-            (json.dumps(pairs_history.to_list()), str(datetime.now())))
+            (pairs_history.identity.value,
+             json.dumps(pairs_history.pairs.to_list()), str(datetime.now())))
         self.conn.commit()  # TODO: to control in application
 
-    def load(self) -> List[Pairs]:
+    def load(self) -> List[PairsHistory]:
         return [
-            Pairs.from_list(json.loads(l[0])) for l in list(
+            PairsHistory(
+                PairsHistoryId(l[0]), Pairs.from_list(json.loads(l[1])))
+            for l in list(
                 self.cursor.execute(
-                    'SELECT data FROM pairs ORDER BY created_at'))
+                    'SELECT id, data FROM pairs ORDER BY created_at'))
         ]
