@@ -10,6 +10,8 @@ mypy = "*"
 
 [packages]
 fire = "*"
+grpcio = "*"
+grpcio-tools = "*"
 
 [requires]
 python_version = "3.7"

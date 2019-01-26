@@ -1,0 +1,30 @@
+syntax = "proto3";
+package pairpair.pair;
+
+
+service PairService {
+    rpc SavePairsHistory(Pairs) returns (Pairs);
+    rpc NextPairsByHistory(Members) returns (PossiblePairs);
+}
+
+
+message Member {
+    string name =1;
+}
+
+message Members {
+    repeated Member member = 1;
+}
+
+message Pair {
+    Member first = 1;
+    Member second = 2;
+}
+
+message Pairs {
+    repeated Pair pair = 1;
+}
+
+message PossiblePairs {
+    repeated Pairs pairs = 1;
+}
