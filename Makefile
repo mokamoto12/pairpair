@@ -6,7 +6,7 @@ all: format proto lint test
 
 .PHONY: test
 test:
-	$(PYTHON) -m unittest
+	pipenv run pytest --cov=$(SRC) --cov-report=html
 
 .PHONY: format
 format:
