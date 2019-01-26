@@ -1,5 +1,5 @@
 from itertools import combinations
-from typing import Iterator, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from dataclasses import dataclass
 
@@ -14,7 +14,7 @@ class Pair:
     first: Member
     second: Optional[Member]
 
-    def __contains__(self, item: Member) -> bool:
+    def __contains__(self, item: Optional[Member]) -> bool:
         if not isinstance(item, Member):
             return False
         return self.first == item or self.second == item
@@ -31,14 +31,17 @@ class Pair:
                 self.second == other.first and self.first != other.second) or (
                     self.second == other.second and self.first != other.first)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Optional[str]]:
         return {
             'first': self.first.name,
             'second': self.second.name if self.second is not None else None
         }
 
     @staticmethod
-    def from_dict(data: dict) -> 'Pair':
+    def from_dict(data: Dict[str, Optional[str]]) -> 'Pair':
+        if data['first'] is None:
+            raise RuntimeError()
+
         return Pair(
             Member(data['first']),
             Member(data['second']) if data['second'] is not None else None)
@@ -76,12 +79,12 @@ class Pairs:
             map(lambda self_pair, other_pair: self_pair == other_pair, self,
                 other))
 
-    def to_list(self) -> List[dict]:
+    def to_list(self) -> List[Dict[str, Optional[str]]]:
         return [pair.to_dict() for pair in self.list]
 
     @staticmethod
-    def from_list(data: List[dict]) -> 'Pairs':
-        return Pairs([Pair.from_dict(l) for l in data])
+    def from_list(list: List[Dict[str, Optional[str]]]) -> 'Pairs':
+        return Pairs([Pair.from_dict(d) for d in list])
 
     @staticmethod
     def from_list2(data: List[List[str]]) -> 'Pairs':

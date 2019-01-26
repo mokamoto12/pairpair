@@ -1,7 +1,8 @@
+SRC = src
 PYTHON = pipenv run python
 
 .PHONY: all
-all: format proto test
+all: format proto lint test
 
 .PHONY: test
 test:
@@ -10,6 +11,10 @@ test:
 .PHONY: format
 format:
 	pipenv run yapf -ir . && pipenv run isort -yrc
+
+.PHONY: lint
+lint:
+	pipenv run mypy --strict $(SRC)
 
 
 # proto
