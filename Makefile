@@ -19,10 +19,10 @@ lint:
 
 # proto
 .SUFFIXES: .proto _pb2.py _pb2_grpc.py
-PROTO_PATH = resources/protobuf
 PROTOC = pipenv run python -m grpc_tools.protoc
-PFLAGS = -I$(PROTO_PATH) --python_out=$(PROTO_PATH) --grpc_python_out=$(PROTO_PATH)
+PFLAGS = -I. --python_out=. --grpc_python_out=.
 
+PROTO_PATH = resources/protobuf
 PROTO_OBJS = $(PROTO_PATH)/pair_pb2.py $(PROTO_PATH)/pair_pb2_grpc.py
 
 
