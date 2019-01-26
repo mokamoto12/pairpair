@@ -13,7 +13,7 @@ message Member {
 }
 
 message Members {
-    repeated Member member = 1;
+    repeated Member members = 1;
 }
 
 message Pair {
@@ -22,9 +22,9 @@ message Pair {
 }
 
 message Pairs {
-    repeated Pair pair = 1;
+    repeated Pair pairs = 1;
 }
 
 message PossiblePairs {
-    repeated Pairs pairs = 1;
+    repeated Pairs pairs_list = 1;
 }
