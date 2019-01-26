@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+
+# Unit test / coverage reports
+tests/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+.idea
+**/*.sqlite3
+**/*_pb2.py
+**/*_pb2_grpc.py

@@ -2,7 +2,10 @@ SRC = src
 PYTHON = pipenv run python
 
 .PHONY: all
-all: format proto lint test
+all: format build lint test
+
+.PHONY: build
+build: proto
 
 .PHONY: test
 test:
