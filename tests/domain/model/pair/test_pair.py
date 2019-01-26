@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from src.domain.model.pair.pair import (EvaluationService, Member, Members,
-                                        Pair, Pairs, PairTree)
+from src.domain.model.pair.history import EvaluationService
+from src.domain.model.pair.pair import Member, Members, Pair, Pairs, PairTree
 
 
 class PairTest(TestCase):

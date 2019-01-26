@@ -2,8 +2,11 @@ import json
 import sqlite3
 from datetime import datetime
 from typing import List
+from uuid import uuid4
 
-from src.domain.model.pair.pair import Pairs, PairsHistoryRepository
+from src.domain.model.pair.history import (PairsHistory, PairsHistoryId,
+                                           PairsHistoryRepository)
+from src.domain.model.pair.pair import Pairs
 
 
 class Sqlite3PairsHistoryRepository(PairsHistoryRepository):
@@ -16,10 +19,13 @@ class Sqlite3PairsHistoryRepository(PairsHistoryRepository):
     def __del__(self):
         self.conn.close()
 
-    def save(self, pairs: Pairs) -> None:
+    def next_identity(self) -> PairsHistoryId:
+        return PairsHistoryId(uuid4().hex)
+
+    def save(self, pairs_history: PairsHistory) -> None:
         self.cursor.execute(
-            'INSERT INTO pairs(data, created_at) VALUES (?, ?)',
-            (json.dumps(pairs.to_list()), str(datetime.now())))
+            'INSERT INTO pairs(id, data, created_at) VALUES (?, ?, ?)',
+            (json.dumps(pairs_history.to_list()), str(datetime.now())))
         self.conn.commit()  # TODO: to control in application
 
     def load(self) -> List[Pairs]:

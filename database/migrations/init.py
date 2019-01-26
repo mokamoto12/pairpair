@@ -3,9 +3,10 @@ import sqlite3
 db_name = 'database/pairpair.sqlite3'
 
 
-def create_pairs_table(cursor) -> None:
-    cursor.execute(
-        "CREATE TABLE IF NOT EXISTS pairs(data TEXT, created_at DATETIME)")
+def create_pairs_table(cur) -> None:
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS pairs(id TEXT PRIMARY KEY, data TEXT NOT NULL, created_at DATETIME NOT NULL)"
+    )
 
 
 if __name__ == '__main__':

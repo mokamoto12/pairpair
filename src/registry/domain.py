@@ -1,7 +1,5 @@
-from src.domain.model.pair.pair import (EvaluationService,
-                                        PairsHistoryRepository)
-from src.infrastructure.persistence.pair.inmemory import \
-    InMemoryPairsHistoryRepository
+from src.domain.model.pair.history import (EvaluationService,
+                                           PairsHistoryRepository)
 from src.infrastructure.persistence.pair.sqlite3 import \
     Sqlite3PairsHistoryRepository
 

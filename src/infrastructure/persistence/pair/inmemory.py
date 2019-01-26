@@ -1,19 +1,27 @@
 from typing import List
 
-from src.domain.model.pair.pair import Pairs, PairsHistoryRepository
+from src.domain.model.pair.history import (PairsHistory, PairsHistoryId,
+                                           PairsHistoryRepository)
 
 
 class InMemoryPairsHistoryRepository(PairsHistoryRepository):
-    list: List[Pairs]
+    cnt: int
+    list: List[PairsHistory]
 
     def __init__(self) -> None:
+        self.cnt = 0
         self.list = []
 
-    def load(self) -> List[Pairs]:
+    def next_identity(self) -> PairsHistoryId:
+        identity = PairsHistoryId(str(self.cnt))
+        self.cnt += 1
+        return identity
+
+    def load(self) -> List[PairsHistory]:
         return self.list
 
-    def save(self, pairs: Pairs) -> None:
-        self.list.append(pairs)
+    def save(self, pairs_history: PairsHistory) -> None:
+        self.list.append(pairs_history)
 
     def flush(self) -> None:
         self.list = []

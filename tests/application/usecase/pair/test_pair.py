@@ -2,8 +2,9 @@ from unittest import TestCase
 
 from src.application.usecase.pair.pair import (NextPairsByHistory,
                                                SavePairsHistory)
-from src.domain.model.pair.pair import (EvaluationService, Member, Members,
-                                        Pair, Pairs)
+from src.domain.model.pair.history import (EvaluationService, PairsHistory,
+                                           PairsHistoryId)
+from src.domain.model.pair.pair import Member, Members, Pair, Pairs
 from src.infrastructure.persistence.pair.inmemory import \
     InMemoryPairsHistoryRepository
 
@@ -29,8 +30,11 @@ class NextPairsByHistoryTest(TestCase):
 
     def test_run_with_history(self):
         self.repository.save(
-            Pairs([Pair(Member('a'), Member('b')),
-                   Pair(Member('c'), None)]))
+            PairsHistory(
+                PairsHistoryId('id'),
+                Pairs(
+                    [Pair(Member('a'), Member('b')),
+                     Pair(Member('c'), None)])))
 
         pairs_list = self.use_case.run(
             Members([Member('a'), Member('b'),
@@ -54,4 +58,8 @@ class SavePairsHistoryTest(TestCase):
              Pair(Member('c'), None)])
         self.use_case.run(save_pairs)
 
-        self.assertEqual(self.repository.list, [save_pairs])
+        self.assertEqual([history.pairs for history in self.repository.list],
+                         [save_pairs])
+        self.assertEqual(
+            [history.identity for history in self.repository.list],
+            [PairsHistoryId('0')])

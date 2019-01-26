@@ -1,7 +1,8 @@
 from typing import List
 
-from src.domain.model.pair.pair import (EvaluationService, Members, Pairs,
-                                        PairsHistoryRepository)
+from src.domain.model.pair.history import (EvaluationService, PairsHistory,
+                                           PairsHistoryRepository)
+from src.domain.model.pair.pair import Members, Pairs
 
 
 class NextPairsByHistory:
@@ -14,8 +15,9 @@ class NextPairsByHistory:
         self.evaluation_service = evaluation_service
 
     def run(self, members: Members) -> List[Pairs]:
-        history: List[Pairs] = self.pairs_repository.load()
-        return self.evaluation_service.evaluate(history, members)
+        histories: List[PairsHistory] = self.pairs_repository.load()
+        return self.evaluation_service.evaluate(
+            [history.pairs for history in histories], members)
 
 
 class SavePairsHistory:
@@ -25,4 +27,6 @@ class SavePairsHistory:
         self.pairs_repository = pairs_repository
 
     def run(self, pairs: Pairs) -> None:
-        self.pairs_repository.save(pairs)
+        history_id = self.pairs_repository.next_identity()
+        pairs_history = PairsHistory(history_id, pairs)
+        self.pairs_repository.save(pairs_history)
